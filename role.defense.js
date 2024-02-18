@@ -1,28 +1,72 @@
 var roleDefense = {
+
   spawn: function () {
     var newName = "robocop" + Game.time;
     console.log("Spawning new robocop: " + newName);
-    Game.spawns["Spawn1"].spawnCreep(
-      [TOUGH, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK],
-      newName,
-      {
-        memory: { role: "robocop" },
-      }
-    );
+    Game.spawns["Spawn1"].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], newName, {
+      memory: { role: "robocop" },
+    });
   },
 
-  towerDefend: function (roomName) {
-    try {
-      var hostiles = Game.rooms[roomName].find(FIND_HOSTILE_CREEPS);
-      if (hostiles.length > 0) {
-        var username = hostiles[0].owner.username;
-        Game.notify(`User ${username} spotted in room ${roomName}`);
-        var towers = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
-          filter: { structureType: STRUCTURE_TOWER },
+
+  run: function (roomName) {
+    var myTowers = [];
+
+    for (var myRoom in Game.rooms) {
+      myTowers.push(
+        Game.rooms[myRoom].find(FIND_MY_STRUCTURES, {
+          filter: (s) => s.structureType === STRUCTURE_TOWER,
+        })
+      );
+    }
+
+    for (const tower of myTowers) {
+      try {
+        const closestHostile =
+          tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+      } catch {}
+
+      // Find the closest damaged wall
+      try {
+        var closestDamagedWall = tower.pos.findClosestByRange(STRUCTURE_WALL, {
+          filter: (structure) => structure.hits < structure.hitsMax,
         });
-        towers.forEach((tower) => tower.attack(hostiles[0]));
+      } catch {
+        console.log("No damaged walls found.")
       }
-    } catch {}
+      // Find the closest damaged rampart
+      try {
+        var closestDamagedRampart = tower.pos.findClosestByRange(
+          STRUCTURE_RAMPART,
+          {
+            filter: (structure) => structure.hits < structure.hitsMax,
+          }
+        );
+      } catch {}
+
+      // Find the closest damaged structure (excluding walls and ramparts)
+      try {
+        var closestDamagedStructure = tower.pos.findClosestByRange(
+          FIND_STRUCTURES,
+          {
+            filter: (structure) => structure.hits < structure.hitsMax,
+          }
+        );
+      } catch {}
+
+      try {
+        if (closestHostile) {
+          tower.attack(closestHostile);
+        } else if (closestDamagedWall) {
+          console.log("hello");
+          tower.repair(closestDamagedWall);
+        } else if (closestDamagedRampart) {
+          tower.repair(closestDamagedRampart);
+        } else if (closestDamagedStructure) {
+          tower.repair(closestDamagedStructure);
+        }
+      } catch {}
+    }
   },
 };
 

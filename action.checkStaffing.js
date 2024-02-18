@@ -2,10 +2,15 @@ var roleHarvester = require("role.harvester");
 var roleUpgrader = require("role.upgrader");
 var roleBuilder = require("role.builder");
 var roleMaintainer = require("role.maintainer");
-var roleDefender = require("role.defense")
+var roleDefender = require("role.defense");
 
 var checkStaffing = {
   check: function () {
+    // Return early if spawn energy storage not full
+    if (Game.spawns["Spawn1"].spawning) {
+      return;
+    }
+
     // Check number of creeps, create more
     var harvesters = _.filter(
       Game.creeps,
@@ -32,21 +37,13 @@ var checkStaffing = {
 
     if (harvesters.length < 3) {
       roleHarvester.spawn();
-    }
-
-    if (upgraders.length < 5) {
+    } else if (upgraders.length < 5) {
       roleUpgrader.spawn();
-    }
-
-    if (builders.length < 2) {
+    } else if (builders.length < 2) {
       roleBuilder.spawn();
-    }
-
-    if (maintainers.length < 5) {
+    } else if (maintainers.length < 7) {
       roleMaintainer.spawn();
-    }
-
-    if (robocops.length < 5) {
+    } else if (robocops.length < 5) {
       roleDefender.spawn();
     }
   },

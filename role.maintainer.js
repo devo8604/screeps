@@ -20,10 +20,12 @@ var roleMaintainer = {
 
     // Repair Ramparts
     if (creep.memory.building) {
-      var ramparts = creep.room.find(FIND_STRUCTURES, {
+      var ramparts = creep.room.find(FIND_MY_STRUCTURES, {
         filter: (structure) => {
           return (
-            structure.structureType == STRUCTURE_RAMPART &&
+            structure.structureType == STRUCTURE_RAMPART ||
+            structure.structureType == STRUCTURE_CONTAINER ||
+            structure.structureType == STRUCTURE_WALL &&
             structure.hits < structure.hitsMax
           );
         },
